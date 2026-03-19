@@ -1,0 +1,58 @@
+<dashboard version="1.1" script="setup.js" theme="dark">
+  <label>ProtectorNet Setup</label>
+  <description>Configure the ProtectorNet API connection. Your API key is stored encrypted in Splunk's credential store.</description>
+
+  <row>
+    <panel>
+      <html>
+        <style>
+          .setup-container { max-width: 600px; margin: 20px auto; }
+          .setup-field { margin-bottom: 20px; }
+          .setup-field label { display: block; font-weight: bold; margin-bottom: 6px; color: #c3cbd4; }
+          .setup-field input[type="text"],
+          .setup-field input[type="password"] {
+            width: 100%; padding: 10px 12px; border: 1px solid #3c444d;
+            border-radius: 6px; font-size: 14px; background: #1a1c21; color: #fff;
+          }
+          .setup-field input:focus { border-color: #14B5D9; outline: none; box-shadow: 0 0 0 2px rgba(20,181,217,0.2); }
+          .setup-field .help-text { font-size: 12px; color: #8a929a; margin-top: 4px; }
+          .setup-btn {
+            background: #14B5D9; color: #fff; border: none; padding: 12px 28px;
+            border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+          }
+          .setup-btn:hover { background: #0fa3c5; }
+          .setup-status { margin-top: 16px; padding: 12px; border-radius: 6px; font-size: 13px; }
+          .setup-status.success { background: rgba(83,160,81,0.15); border: 1px solid #53A051; color: #53A051; }
+          .setup-status.error { background: rgba(212,31,31,0.15); border: 1px solid #D41F1F; color: #D41F1F; }
+          .api-key-note { background: rgba(20,181,217,0.08); border: 1px solid rgba(20,181,217,0.2); border-radius: 6px; padding: 12px; margin-bottom: 20px; font-size: 13px; color: #8a929a; }
+          .api-key-note strong { color: #14B5D9; }
+        </style>
+
+        <div class="setup-container">
+          <div class="api-key-note">
+            <strong>🔒 Security:</strong> Your API key is stored encrypted in Splunk's
+            <code>storage/passwords</code> — it is never written to plain-text config files
+            and is not visible after saving.
+          </div>
+
+          <div class="setup-field">
+            <label for="base_url">ProtectorNet Base URL</label>
+            <input type="text" id="base_url" placeholder="https://app.protectornet.ai" />
+            <div class="help-text">The base URL of your ProtectorNet instance. Default: https://app.protectornet.ai</div>
+          </div>
+
+          <div class="setup-field">
+            <label for="api_key">API Key</label>
+            <input type="password" id="api_key" placeholder="Enter your ProtectorNet API key" autocomplete="off" />
+            <div class="help-text">Found in your ProtectorNet profile → API Keys. Required for WebScan and ThreatHunt services.</div>
+          </div>
+
+          <button class="setup-btn" id="save_btn" onclick="saveConfig()">Save Configuration</button>
+
+          <div id="setup_status" class="setup-status" style="display:none;"></div>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+</dashboard>

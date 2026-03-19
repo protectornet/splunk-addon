@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "2.0.0",
+  "info": {
+    "title": "ProtectorNet",
+    "id": {
+      "group": null,
+      "name": "TA-protectornet",
+      "version": "1.0.0"
+    },
+    "author": [
+      {
+        "name": "ProtectorNet Pty Ltd",
+        "email": "support@protectornet.ai",
+        "company": "ProtectorNet Pty Ltd"
+      }
+    ],
+    "releaseDate": null,
+    "description": "Enrich Splunk events with ProtectorNet threat intelligence. Provides custom search commands (protectornetscan, protectornetstatus, protectornetverdict), an adaptive response action for Enterprise Security, and workflow actions for URL/domain threat analysis.",
+    "classification": {
+      "intendedAudience": "Security Analysts, SOC Teams",
+      "categories": ["Security, Fraud & Compliance", "IT Operations"],
+      "developmentStatus": "Production/Stable"
+    },
+    "commonInformationModels": null,
+    "license": {
+      "name": "Proprietary",
+      "text": null,
+      "uri": "https://protectornet.ai/terms"
+    },
+    "privacyPolicy": {
+      "name": "Privacy Policy",
+      "text": null,
+      "uri": "https://protectornet.ai/privacy"
+    },
+    "releaseNotes": {
+      "name": "Version 1.0.0",
+      "text": "Initial release. Custom search commands, adaptive response, workflow actions, and setup dashboard.",
+      "uri": null
+    }
+  },
+  "dependencies": null,
+  "tasks": null,
+  "inputGroups": null,
+  "incompatibleApps": null,
+  "platformRequirements": {
+    "splunk": {
+      "Enterprise": ">=8.2"
+    }
+  },
+  "supportedDeployments": ["_standalone", "_distributed", "_search_head_clustering"],
+  "targetWorkloads": ["_search_heads"]
+}

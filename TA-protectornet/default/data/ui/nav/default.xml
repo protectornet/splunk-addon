@@ -1,0 +1,7 @@
+<nav search_view="search" color="#14B5D9">
+  <view name="protectornet_overview" default="true" />
+  <view name="setup" />
+  <collection label="Search">
+    <view name="search" />
+  </collection>
+</nav>

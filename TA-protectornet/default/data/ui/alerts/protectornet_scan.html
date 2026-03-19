@@ -1,0 +1,33 @@
+<form class="form-horizontal form-complex">
+
+  <div class="control-group">
+    <label class="control-label" for="protectornet_scan_url_field">URL Field</label>
+    <div class="controls">
+      <input type="text"
+             id="protectornet_scan_url_field"
+             name="action.protectornet_scan.param.url_field"
+             value="url"
+             class="input-xlarge" />
+      <span class="help-block">
+        The event field containing the URL to scan (e.g., url, dest_url, src_url).
+      </span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="protectornet_scan_services">Services</label>
+    <div class="controls">
+      <select id="protectornet_scan_services"
+              name="action.protectornet_scan.param.services"
+              class="input-xlarge">
+        <option value="webscan,threathunt" selected="selected">WebScan + ThreatHunt</option>
+        <option value="webscan">WebScan Only</option>
+        <option value="threathunt">ThreatHunt Only</option>
+      </select>
+      <span class="help-block">
+        Select which ProtectorNet services to invoke for threat analysis.
+      </span>
+    </div>
+  </div>
+
+</form>

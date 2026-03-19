@@ -1,0 +1,100 @@
+<dashboard version="1.1" theme="dark">
+  <label>ProtectorNet Threat Intelligence</label>
+  <description>Submit URLs and domains for threat analysis using ProtectorNet WebScan and ThreatHunt services.</description>
+
+  <!-- URL Input Panel -->
+  <fieldset submitButton="true" autoRun="false">
+    <input type="text" token="target_url" searchWhenChanged="false">
+      <label>URL to Scan</label>
+      <default>https://example.com</default>
+    </input>
+    <input type="dropdown" token="services" searchWhenChanged="false">
+      <label>Services</label>
+      <default>webscan,threathunt</default>
+      <choice value="webscan,threathunt">WebScan + ThreatHunt</choice>
+      <choice value="webscan">WebScan Only</choice>
+      <choice value="threathunt">ThreatHunt Only</choice>
+    </input>
+  </fieldset>
+
+  <!-- Row 1: Scan Result -->
+  <row>
+    <panel>
+      <title>Scan Result</title>
+      <table>
+        <search>
+          <query>| protectornetscan url="$target_url$" services="$services$"
+| table ptnet_url ptnet_final_verdict ptnet_confidence ptnet_threat_score ptnet_category ptnet_services ptnet_submission_id ptnet_report_url ptnet_status ptnet_error</query>
+          <earliest>-1m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <format type="color" field="ptnet_final_verdict">
+          <colorPalette type="map">{"Malicious":#D41F1F, "Suspicious":#F8BE34, "Safe":#53A051, "Unknown":#999999}</colorPalette>
+        </format>
+        <format type="color" field="ptnet_status">
+          <colorPalette type="map">{"Completed":#53A051, "Error":#D41F1F, "ValidationError":#F8BE34}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Row 2: Recent Scans from Event Index -->
+  <row>
+    <panel>
+      <title>Recent ProtectorNet Scans (Last 24h)</title>
+      <chart>
+        <search>
+          <query>index=* sourcetype=* ptnet_final_verdict=*
+| stats count by ptnet_final_verdict
+| sort -count</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.showPercent">true</option>
+        <option name="charting.seriesColors">[#D41F1F, #F8BE34, #53A051, #999999]</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Threat Score Distribution</title>
+      <chart>
+        <search>
+          <query>index=* sourcetype=* ptnet_threat_score=*
+| bin ptnet_threat_score span=10
+| stats count by ptnet_threat_score</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.axisTitleX.text">Threat Score</option>
+        <option name="charting.axisTitleY.text">Count</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Row 3: Detailed Results Table -->
+  <row>
+    <panel>
+      <title>Scan History</title>
+      <table>
+        <search>
+          <query>index=* sourcetype=* ptnet_submission_id=*
+| dedup ptnet_submission_id
+| table _time ptnet_url ptnet_final_verdict ptnet_confidence ptnet_threat_score ptnet_category ptnet_services ptnet_submission_id
+| sort -_time
+| head 50</query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">row</option>
+        <option name="count">20</option>
+        <format type="color" field="ptnet_final_verdict">
+          <colorPalette type="map">{"Malicious":#D41F1F, "Suspicious":#F8BE34, "Safe":#53A051, "Unknown":#999999}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>

@@ -1,0 +1,34 @@
+#
+# Metadata — default permissions for TA-protectornet
+#
+# These permissions control who can see/use the app's objects.
+# The setup endpoint requires admin_all_objects capability.
+#
+
+[]
+access = read : [ * ], write : [ admin ]
+export = system
+
+[commands]
+access = read : [ * ], write : [ admin ]
+export = system
+
+[alert_actions]
+access = read : [ * ], write : [ admin ]
+export = system
+
+[workflow_actions]
+access = read : [ * ], write : [ admin ]
+export = system
+
+[views]
+access = read : [ * ], write : [ admin ]
+export = system
+
+[nav]
+access = read : [ * ], write : [ admin ]
+export = system
+
+[admin:protectornet_setup]
+access = read : [ admin ], write : [ admin ]
+export = system
