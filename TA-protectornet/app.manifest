@@ -10,7 +10,7 @@
     "author": [
       {
         "name": "ProtectorNet Pty Ltd",
-        "email": "support@protectornet.ai",
+        "email": "support@protectornet.io",
         "company": "ProtectorNet Pty Ltd"
       }
     ],
@@ -25,12 +25,12 @@
     "license": {
       "name": "Proprietary",
       "text": null,
-      "uri": "https://protectornet.ai/terms"
+      "uri": "https://protectornet.io/terms"
     },
     "privacyPolicy": {
       "name": "Privacy Policy",
       "text": null,
-      "uri": "https://protectornet.ai/privacy"
+      "uri": "https://protectornet.io/privacy"
     },
     "releaseNotes": {
       "name": "Version 1.0.0",

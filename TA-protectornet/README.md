@@ -36,7 +36,7 @@ Enrich Splunk events with ProtectorNet threat intelligence. Submit URLs and doma
 ## Setup
 
 1. Open Splunk Web → **ProtectorNet** app → **Setup**
-2. Enter your **ProtectorNet Base URL** (default: `https://app.protectornet.ai`)
+2. Enter your **ProtectorNet Base URL** (default: `https://app.protectornet.io`)
 3. Enter your **API Key** (from ProtectorNet → Profile → API Keys)
 4. Click **Save Configuration**
 
@@ -167,11 +167,11 @@ TA-protectornet/
 
 ## Support
 
-- **Documentation:** https://docs.protectornet.ai/integrations/splunk
-- **Support Email:** support@protectornet.ai
+- **Documentation:** https://docs.protectornet.io/integrations/splunk
+- **Support Email:** support@protectornet.io
 - **GitHub:** https://github.com/ProtectorNet/splunk-addon
 
 ## License
 
 Copyright © 2026 ProtectorNet Pty Ltd. All rights reserved.
-See https://protectornet.ai/terms for license terms.
+See https://protectornet.io/terms for license terms.

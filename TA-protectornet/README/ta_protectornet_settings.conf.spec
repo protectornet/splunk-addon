@@ -6,4 +6,4 @@
 base_url = <string>
   * The base URL of the ProtectorNet API
   * Must start with https://
-  * Default: https://app.protectornet.ai
+  * Default: https://app.protectornet.io
