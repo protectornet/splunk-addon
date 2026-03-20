@@ -37,8 +37,8 @@
 
           <div class="setup-field">
             <label for="base_url">ProtectorNet Base URL</label>
-            <input type="text" id="base_url" placeholder="https://app.protectornet.io" />
-            <div class="help-text">The base URL of your ProtectorNet instance. Default: https://app.protectornet.io</div>
+            <input type="text" id="base_url" placeholder="https://api.protectornet.io" />
+            <div class="help-text">The base URL of your ProtectorNet instance. Default: https://api.protectornet.io</div>
           </div>
 
           <div class="setup-field">

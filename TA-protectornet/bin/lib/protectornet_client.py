@@ -35,7 +35,7 @@ except ImportError:
 # Constants
 # ---------------------------------------------------------------------------
 
-DEFAULT_BASE_URL = "https://app.protectornet.io"
+DEFAULT_BASE_URL = "https://api.protectornet.io"
 DEFAULT_TIMEOUT = 30  # seconds per HTTP request
 MAX_POLL_ATTEMPTS = 40  # 40 × 15s = 10 min max
 POLL_INTERVAL = 15  # seconds between status polls
