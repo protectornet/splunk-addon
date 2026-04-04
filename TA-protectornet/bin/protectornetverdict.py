@@ -5,9 +5,11 @@ protectornetverdict — Custom Splunk Generating Search Command
 Usage (SPL):
     | protectornetverdict submission_id=<id>
 
-Fetches the full threat verdict for a completed ProtectorNet scan.
-Returns: submission_id, final_verdict, confidence, threat_score, category,
-         report_url, and raw verdict JSON.
+Fetches full WebScan and ThreatData results for a completed ProtectorNet scan.
+Calls:
+    GET /search/webscan/fulldata/{id}/v2?profile=full  — full WebScan dataset
+    GET /search/threatdata/{id}                        — threat hunt IOCs & enrichment
+Returns raw JSON payloads as Splunk fields for downstream lookup or eval.
 """
 
 import json
@@ -19,7 +21,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 
 from lib.protectornet_client import (
     get_api_key,
-    get_verdict,
+    get_fulldata,
+    get_threatdata,
     validate_submission_id,
     ProtectorNetError,
     DEFAULT_BASE_URL,
@@ -36,8 +39,15 @@ from splunklib.searchcommands import (
 @Configuration()
 class ProtectorNetVerdictCommand(GeneratingCommand):
     """
-    Generating command that retrieves the ProtectorNet threat verdict
-    for a completed submission.
+        Generating command that retrieves the full ProtectorNet WebScan and
+        ThreatData payloads for a completed submission.
+
+        Output fields:
+            ptnet_submission_id  — submission UUID
+            ptnet_webscan_data   — JSON string of the full WebScan dataset (profile=full)
+            ptnet_threatdata     — JSON string of the ThreatData payload (empty if not available)
+            ptnet_status         — "Completed" or "Error"
+            ptnet_error          — error message if status is "Error"
     """
 
     submission_id = Option(
@@ -71,23 +81,24 @@ class ProtectorNetVerdictCommand(GeneratingCommand):
 
         try:
             sid = validate_submission_id(self.submission_id)
-            resp = get_verdict(api_key, sid, base_url)
 
-            verdicts = resp.get("verdict", [])
-            first = verdicts[0] if verdicts else {}
+            fulldata = get_fulldata(api_key, sid, profile="full", base_url=base_url)
+
+            threatdata = {}
+            try:
+                threatdata = get_threatdata(api_key, sid, base_url=base_url)
+            except ProtectorNetError as td_exc:
+                logger.warning(
+                    "ThreatData not available for %s (ThreatHunt may not have "
+                    "been requested): %s", sid, td_exc
+                )
 
             yield {
                 "ptnet_submission_id": sid,
-                "ptnet_final_verdict": first.get("final_verdict", "Unknown"),
-                "ptnet_confidence": first.get("confidence", 0),
-                "ptnet_category": first.get("category", ""),
-                "ptnet_threat_score": resp.get("threat_score", 0),
-                "ptnet_details": json.dumps(resp.get("details", {})),
-                "ptnet_verdicts_raw": json.dumps(verdicts),
-                "ptnet_report_url": "{}/search?ref={}".format(
-                    base_url.rstrip("/"), sid
-                ),
+                "ptnet_webscan_data": json.dumps(fulldata),
+                "ptnet_threatdata": json.dumps(threatdata),
                 "ptnet_status": "Completed",
+                "ptnet_report_url": "{}/search?ref={}".format(base_url.rstrip("/"), sid),
             }
 
         except ProtectorNetError as exc:

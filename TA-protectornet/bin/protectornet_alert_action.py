@@ -93,7 +93,7 @@ def main():
     session_key = config.get("session_key", "")
     results_file = config.get("results_file", "")
     url_field = config.get("param.url_field", config.get("url_field", "url"))
-    services = config.get("param.services", config.get("services", "webscan,threathunt"))
+    services = config.get("param.services", config.get("services", "domainAnalysis,threatIntel"))
 
     if not session_key:
         logger.error("No session_key in alert config")

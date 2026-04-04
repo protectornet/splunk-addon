@@ -3,13 +3,11 @@
 protectornetstatus — Custom Splunk Generating Search Command
 
 Usage (SPL):
-    | protectornetstatus submission_id=<id> [service=webscan]
+    | protectornetstatus submission_id=<id>
 
-Polls the status of a previously submitted ProtectorNet scan.
-Returns: submission_id, service, status (Processing/Completed/Failed)
-
-Useful for async workflows where the analyst submitted via protectornetscan
-with async=true (future feature) and wants to check back later.
+Checks the aggregated status of a previously submitted ProtectorNet scan.
+Returns: ptnet_submission_id, ptnet_overall_status,
+         ptnet_webscan_status, ptnet_threathunt_status
 """
 
 import os
@@ -20,8 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 
 from lib.protectornet_client import (
     get_api_key,
-    get_webscan_status,
-    get_threathunt_status,
+    get_submission_status,
     validate_submission_id,
     ProtectorNetError,
     DEFAULT_BASE_URL,
@@ -39,17 +36,13 @@ from splunklib.searchcommands import (
 @Configuration()
 class ProtectorNetStatusCommand(GeneratingCommand):
     """
-    Generating command that checks the status of a ProtectorNet submission.
+    Generating command that checks the aggregated status of a ProtectorNet
+    submission using the unified /search/threatanalyse/status/{id} endpoint.
     """
 
     submission_id = Option(
         doc="The submission reference ID from a previous scan",
         require=True,
-    )
-    service = Option(
-        doc="Service to check: webscan or threathunt (default: webscan)",
-        require=False,
-        default="webscan",
     )
 
     def generate(self):
@@ -78,17 +71,13 @@ class ProtectorNetStatusCommand(GeneratingCommand):
 
         try:
             sid = validate_submission_id(self.submission_id)
-            svc = self.service.strip().lower()
 
-            if svc == "threathunt":
-                resp = get_threathunt_status(api_key, sid, base_url)
-            else:
-                resp = get_webscan_status(api_key, sid, base_url)
-
+            resp = get_submission_status(api_key, sid, base_url)
             yield {
                 "ptnet_submission_id": sid,
-                "ptnet_service": svc,
-                "ptnet_status": resp.get("status", "Unknown"),
+                "ptnet_overall_status": resp.get("overall_status", "unknown"),
+                "ptnet_webscan_status": resp.get("webscan_status", ""),
+                "ptnet_threathunt_status": resp.get("threathunt_status", ""),
             }
 
         except ProtectorNetError as exc:
@@ -96,7 +85,7 @@ class ProtectorNetStatusCommand(GeneratingCommand):
             yield {
                 "ptnet_submission_id": self.submission_id,
                 "ptnet_error": str(exc),
-                "ptnet_status": "Error",
+                "ptnet_overall_status": "Error",
             }
 
 

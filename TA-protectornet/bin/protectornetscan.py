@@ -3,8 +3,8 @@
 protectornetscan — Custom Splunk Streaming Search Command
 
 Usage (SPL):
-    | protectornetscan url=<url> [services=webscan,threathunt]
-    index=proxy | protectornetscan field=url [services=webscan]
+    | protectornetscan url=<url> [services=domainAnalysis,threatIntel]
+    index=proxy | protectornetscan field=url [services=domainAnalysis]
 
 Submits a URL to ProtectorNet, polls until complete, and returns the verdict
 as new fields (ptnet_final_verdict, ptnet_confidence, ptnet_threat_score, etc.)
@@ -60,9 +60,9 @@ class ProtectorNetScanCommand(StreamingCommand):
         default="url",
     )
     services = Option(
-        doc="Comma-separated services: webscan, threathunt",
+        doc="Comma-separated services: domainAnalysis, threatIntel",
         require=False,
-        default="webscan,threathunt",
+        default="domainAnalysis,threatIntel",
     )
 
     def stream(self, records):
@@ -91,7 +91,7 @@ class ProtectorNetScanCommand(StreamingCommand):
         except Exception:
             pass  # Fall back to default
 
-        svc_list = [s.strip() for s in (self.services or "webscan,threathunt").split(",")]
+        svc_list = [s.strip() for s in (self.services or "domainAnalysis,threatIntel").split(",")]
 
         # Cache to avoid re-scanning identical URLs in the same search
         cache = {}

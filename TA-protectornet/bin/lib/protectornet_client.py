@@ -1,18 +1,27 @@
 """
 ProtectorNet API Client for Splunk
 
-Handles all communication with the ProtectorNet REST API:
-  - Submit URL/domain for analysis (POST /search/threatanalyse)
-  - Poll scan status (GET /search/threatanalyse/webscanstatus/{id})
-  - Poll threat hunt status (GET /search/threatanalyse/threathuntstatus/{id})
-  - Fetch verdict (GET /search/threatverdict/{id})
-  - Fetch full data (GET /search/webscan/fulldata/{id}/v2)
+Handles all communication with the ProtectorNet REST API using the
+current asynchronous submit/poll/fetch workflow:
+    - Submit URL for analysis  (POST /search/threatanalyse/)
+    - Poll aggregated status   (GET  /search/threatanalyse/status/{submission_id})
+    - Fetch WebScan summary    (GET  /search/webscan/summary/{submission_id})
+    - Fetch WebScan full data  (GET  /search/webscan/fulldata/{submission_id}/v2)
+    - Fetch ThreatData         (GET  /search/threatdata/{submission_id})
+
+Key changes from v1:
+    - Auth: x-api-key header (was Authorization: Bearer)
+    - Submit body: "text" field (was "url")
+    - Submit endpoint has trailing slash
+    - Submission ID from submissions[0].submission_id (was submissionreference)
+    - Status: unified /search/threatanalyse/status/{id} (was per-service endpoints)
+    - Services: domainAnalysis / threatIntel (API frontend names)
 
 Security:
-  - API key retrieved from Splunk's encrypted credential store (storage/passwords)
-  - SSL verification enabled by default
-  - Input validated before API calls
-  - No credentials logged
+    - API key retrieved from Splunk's encrypted credential store (storage/passwords)
+    - SSL verification enabled by default
+    - Input validated before API calls
+    - No credentials logged
 """
 
 import json
@@ -39,6 +48,16 @@ DEFAULT_BASE_URL = "https://api.protectornet.io"
 DEFAULT_TIMEOUT = 30  # seconds per HTTP request
 MAX_POLL_ATTEMPTS = 40  # 40 × 15s = 10 min max
 POLL_INTERVAL = 15  # seconds between status polls
+
+# Map legacy service names → API frontend names accepted by /search/threatanalyse/
+_SERVICE_ALIASES = {
+    "webscan": "domainAnalysis",
+    "threathunt": "threatIntel",
+    "domainanalysis": "domainAnalysis",
+    "threatintel": "threatIntel",
+    "domainAnalysis": "domainAnalysis",
+    "threatIntel": "threatIntel",
+}
 
 # Simple allow-list for URL validation (scheme + host required)
 _URL_PATTERN = re.compile(
@@ -114,20 +133,28 @@ def validate_submission_id(submission_id):
 
 
 def validate_services(services):
-    """Validate and normalise service list."""
-    allowed = {"webscan", "threathunt"}
+    """
+    Validate and normalise service list.
+    Accepts API frontend names (domainAnalysis, threatIntel) and legacy
+    Splunk addon names (webscan, threathunt) as aliases.
+    """
     if not services:
-        return ["webscan", "threathunt"]
+        return ["domainAnalysis", "threatIntel"]
     if isinstance(services, str):
-        services = [s.strip().lower() for s in services.split(",")]
+        services = [s.strip() for s in services.split(",")]
     result = []
     for s in services:
-        s = s.strip().lower()
-        if s in allowed:
-            result.append(s)
+        s = s.strip()
+        normalized = _SERVICE_ALIASES.get(s) or _SERVICE_ALIASES.get(s.lower())
+        if normalized and normalized not in result:
+            result.append(normalized)
+        elif not normalized:
+            raise ProtectorNetValidationError(
+                "Invalid service '{}'. Valid values: domainAnalysis, threatIntel".format(s)
+            )
     if not result:
         raise ProtectorNetValidationError(
-            "At least one valid service required: webscan, threathunt"
+            "At least one valid service required: domainAnalysis, threatIntel"
         )
     return result
 
@@ -183,14 +210,15 @@ def _make_request(url, api_key, method="GET", data=None, timeout=DEFAULT_TIMEOUT
     """
     Low-level HTTP request using urllib (no external deps).
 
+    Uses x-api-key header for authentication.
     Returns parsed JSON dict.
     Raises ProtectorNetError subclass on failure.
     """
     headers = {
-        "Authorization": "Bearer {}".format(api_key),
+        "x-api-key": api_key,
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "User-Agent": "TA-protectornet/1.0.0 Splunk",
+        "User-Agent": "TA-protectornet/2.0.0 Splunk",
     }
 
     body = None
@@ -241,77 +269,82 @@ def submit_scan(api_key, url, services=None, base_url=DEFAULT_BASE_URL):
     """
     Submit a URL for analysis.
 
-    POST {base_url}/search/threatanalyse
-    Body: { "url": "<url>", "services": ["webscan","threathunt"] }
+    POST {base_url}/search/threatanalyse/
+    Body: { "text": "<url>", "services": ["domainAnalysis", "threatIntel"] }
 
-    Returns dict with keys: submissionreference, status, services
+    Returns the full submission response. Caller extracts:
+      response["submissions"][0]["submission_id"]
     """
     url = validate_url(url)
     services = validate_services(services)
 
-    endpoint = "{}/search/threatanalyse".format(base_url.rstrip("/"))
-    payload = {"url": url, "services": services}
+    endpoint = "{}/search/threatanalyse/".format(base_url.rstrip("/"))
+    payload = {"text": url, "services": services}
 
     return _make_request(endpoint, api_key, method="POST", data=payload)
 
 
-def get_webscan_status(api_key, submission_id, base_url=DEFAULT_BASE_URL):
+def get_submission_status(api_key, submission_id, base_url=DEFAULT_BASE_URL):
     """
-    Poll WebScan status.
+    Poll aggregated submission status.
 
-    GET {base_url}/search/threatanalyse/webscanstatus/{id}
+    GET {base_url}/search/threatanalyse/status/{submission_id}
 
-    Returns dict with key: status (Processing | Completed | Failed)
+    Returns dict with keys:
+      overall_status  : "submitted" | "processing" | "completed" | "failed"
+      webscan_status  : per-service status string
+      threathunt_status: per-service status string
     """
     submission_id = validate_submission_id(submission_id)
-    endpoint = "{}/search/threatanalyse/webscanstatus/{}".format(
+    endpoint = "{}/search/threatanalyse/status/{}".format(
         base_url.rstrip("/"), urllib.parse.quote(submission_id, safe="")
     )
     return _make_request(endpoint, api_key)
 
 
-def get_threathunt_status(api_key, submission_id, base_url=DEFAULT_BASE_URL):
+def get_webscan_summary(api_key, submission_id, base_url=DEFAULT_BASE_URL):
     """
-    Poll ThreatHunt status.
+    Fetch the WebScan summary (verdict + metadata, optimised for dashboards).
 
-    GET {base_url}/search/threatanalyse/threathuntstatus/{id}
+    GET {base_url}/search/webscan/summary/{submission_id}
 
-    Returns dict with key: status (Processing | Completed | Failed)
+    Returns dict with keys: submissionId, metadata, verdict, screenshot, progress.
+    verdict contains: threat, confidence, riskScore, recommendation, categories, isMalicious.
     """
     submission_id = validate_submission_id(submission_id)
-    endpoint = "{}/search/threatanalyse/threathuntstatus/{}".format(
+    endpoint = "{}/search/webscan/summary/{}".format(
         base_url.rstrip("/"), urllib.parse.quote(submission_id, safe="")
     )
     return _make_request(endpoint, api_key)
 
 
-def get_verdict(api_key, submission_id, base_url=DEFAULT_BASE_URL):
-    """
-    Fetch the threat verdict.
-
-    GET {base_url}/search/threatverdict/{id}
-
-    Returns dict with keys: verdict (list), details, threat_score
-    """
-    submission_id = validate_submission_id(submission_id)
-    endpoint = "{}/search/threatverdict/{}".format(
-        base_url.rstrip("/"), urllib.parse.quote(submission_id, safe="")
-    )
-    return _make_request(endpoint, api_key)
-
-
-def get_fulldata(api_key, submission_id, profile="dashboard_security",
-                 base_url=DEFAULT_BASE_URL):
+def get_fulldata(api_key, submission_id, profile="full", base_url=DEFAULT_BASE_URL):
     """
     Fetch full scan data.
 
     GET {base_url}/search/webscan/fulldata/{id}/v2?profile={profile}
+
+    Profiles: minimal (2KB), dashboard_basic (25KB), dashboard_security (50KB),
+              api_threat_intel (35KB), full (200KB)
     """
     submission_id = validate_submission_id(submission_id)
     endpoint = "{}/search/webscan/fulldata/{}/v2?profile={}".format(
         base_url.rstrip("/"),
         urllib.parse.quote(submission_id, safe=""),
         urllib.parse.quote(profile, safe=""),
+    )
+    return _make_request(endpoint, api_key)
+
+
+def get_threatdata(api_key, submission_id, base_url=DEFAULT_BASE_URL):
+    """
+    Fetch ThreatData (threat hunt results, IOCs, enrichment).
+
+    GET {base_url}/search/threatdata/{submission_id}
+    """
+    submission_id = validate_submission_id(submission_id)
+    endpoint = "{}/search/threatdata/{}".format(
+        base_url.rstrip("/"), urllib.parse.quote(submission_id, safe="")
     )
     return _make_request(endpoint, api_key)
 
@@ -336,73 +369,80 @@ def get_phishing_domains(api_key, submission_id, base_url=DEFAULT_BASE_URL):
 def scan_and_wait(api_key, url, services=None, base_url=DEFAULT_BASE_URL,
                   logger=None):
     """
-    Full end-to-end scan: submit → poll until complete → fetch verdict.
+    Full end-to-end scan: submit → poll status → fetch WebScan summary.
 
-    Returns a flat dict suitable for Splunk output:
-    {
-      submission_id, url, final_verdict, confidence, threat_score,
-      category, services_completed, ...
-    }
+    Returns a flat dict of Splunk output fields:
+      ptnet_submission_id, ptnet_url, ptnet_overall_status,
+      ptnet_webscan_status, ptnet_threathunt_status,
+      ptnet_threat_level, ptnet_risk_score, ptnet_confidence,
+      ptnet_recommendation, ptnet_categories, ptnet_is_malicious,
+      ptnet_final_verdict (alias), ptnet_threat_score (alias),
+      ptnet_status, ptnet_report_url
     """
     # 1. Submit
-    submission = submit_scan(api_key, url, services, base_url)
-    ref = submission.get("submissionreference", "")
+    submission_resp = submit_scan(api_key, url, services, base_url)
+    submissions_list = submission_resp.get("submissions", [])
+    if not submissions_list:
+        raise ProtectorNetError(
+            "No submissions in API response. Response status: {}".format(
+                submission_resp.get("status", "unknown")
+            )
+        )
+    ref = submissions_list[0].get("submission_id", "")
     if not ref:
-        raise ProtectorNetError("No submission reference returned from API")
-
-    active_services = submission.get("services", services or ["webscan"])
+        raise ProtectorNetError("submission_id missing from API response")
 
     if logger:
-        logger.info("ProtectorNet: Submitted %s — ref=%s services=%s",
-                     url, ref, active_services)
+        logger.info("ProtectorNet: Submitted %s — submission_id=%s", url, ref)
 
     # 2. Poll
+    last_status = {}
     for attempt in range(1, MAX_POLL_ATTEMPTS + 1):
-        all_done = True
-        for svc in active_services:
-            if svc == "webscan":
-                status_resp = get_webscan_status(api_key, ref, base_url)
-            elif svc == "threathunt":
-                status_resp = get_threathunt_status(api_key, ref, base_url)
-            else:
-                continue
-
-            status = status_resp.get("status", "")
-            if status == "Failed":
-                raise ProtectorNetError(
-                    "Service '{}' failed for submission {}".format(svc, ref)
-                )
-            if status != "Completed":
-                all_done = False
-
-        if all_done:
+        last_status = get_submission_status(api_key, ref, base_url)
+        overall = last_status.get("overall_status", "processing")
+        if overall == "completed":
             break
-
+        if overall == "failed":
+            raise ProtectorNetError(
+                "Submission {} failed (overall_status=failed)".format(ref)
+            )
         if logger and attempt % 4 == 0:
-            logger.info("ProtectorNet: Still polling %s (attempt %d/%d)",
-                         ref, attempt, MAX_POLL_ATTEMPTS)
-
+            logger.info(
+                "ProtectorNet: Polling %s — attempt %d/%d, status=%s",
+                ref, attempt, MAX_POLL_ATTEMPTS, overall,
+            )
         time.sleep(POLL_INTERVAL)
     else:
         raise ProtectorNetError(
             "Scan timed out after {} attempts for {}".format(MAX_POLL_ATTEMPTS, ref)
         )
 
-    # 3. Verdict
-    verdict_resp = get_verdict(api_key, ref, base_url)
-
-    # Flatten for Splunk output
-    verdicts = verdict_resp.get("verdict", [])
-    first = verdicts[0] if verdicts else {}
+    # 3. Fetch WebScan summary for verdict fields
+    verdict = {}
+    try:
+        summary = get_webscan_summary(api_key, ref, base_url)
+        verdict = summary.get("verdict", {}) or {}
+    except ProtectorNetError as exc:
+        if logger:
+            logger.warning(
+                "ProtectorNet: Could not fetch summary for %s: %s", ref, exc
+            )
 
     return {
         "ptnet_submission_id": ref,
         "ptnet_url": url,
-        "ptnet_final_verdict": first.get("final_verdict", "Unknown"),
-        "ptnet_confidence": first.get("confidence", 0),
-        "ptnet_category": first.get("category", ""),
-        "ptnet_threat_score": verdict_resp.get("threat_score", 0),
-        "ptnet_services": ",".join(active_services),
+        "ptnet_overall_status": last_status.get("overall_status", "completed"),
+        "ptnet_webscan_status": last_status.get("webscan_status", ""),
+        "ptnet_threathunt_status": last_status.get("threathunt_status", ""),
+        "ptnet_threat_level": verdict.get("threat", "unknown"),
+        "ptnet_risk_score": verdict.get("riskScore", 0),
+        "ptnet_confidence": verdict.get("confidence", 0),
+        "ptnet_recommendation": verdict.get("recommendation", ""),
+        "ptnet_categories": ",".join(verdict.get("categories", [])),
+        "ptnet_is_malicious": verdict.get("isMalicious", False),
+        # Backward-compat field aliases used by existing SPL queries
+        "ptnet_final_verdict": verdict.get("threat", "unknown"),
+        "ptnet_threat_score": verdict.get("riskScore", 0),
         "ptnet_status": "Completed",
         "ptnet_report_url": "{}/search?ref={}".format(base_url.rstrip("/"), ref),
     }
