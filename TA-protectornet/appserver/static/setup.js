@@ -1,5 +1,5 @@
 /**
- * setup.js — Client-side JavaScript for the ProtectorNet Setup dashboard
+ * setup.js — Client-side JavaScript for the SentrySurface Setup dashboard
  *
  * Handles saving the base URL and API key via the custom REST endpoint.
  * The API key goes to Splunk's encrypted credential store.

@@ -55,7 +55,7 @@ class ProtectorNetSetupHandler(admin.MConfigHandler):
         api_key_set = self._is_api_key_set()
 
         confInfo["general"]["base_url"] = conf_dict.get(
-            "base_url", "https://api.protectornet.io"
+            "base_url", "https://api.sentrysurface.io"
         )
         confInfo["general"]["api_key_configured"] = "true" if api_key_set else "false"
 

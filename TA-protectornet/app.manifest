@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.0.0",
   "info": {
-    "title": "ProtectorNet",
+    "title": "SentrySurface",
     "id": {
       "group": null,
       "name": "TA-protectornet",
@@ -9,13 +9,13 @@
     },
     "author": [
       {
-        "name": "ProtectorNet Pty Ltd",
-        "email": "support@protectornet.io",
-        "company": "ProtectorNet Pty Ltd"
+        "name": "SentrySurface",
+        "email": "support@sentrysurface.io",
+        "company": "SentrySurface"
       }
     ],
     "releaseDate": null,
-    "description": "Enrich Splunk events with ProtectorNet threat intelligence. Provides custom search commands (protectornetscan, protectornetstatus, protectornetverdict), an adaptive response action for Enterprise Security, and workflow actions for URL/domain threat analysis.",
+    "description": "Enrich Splunk events with SentrySurface threat intelligence. Provides custom search commands (protectornetscan, protectornetstatus, protectornetverdict), an adaptive response action for Enterprise Security, and workflow actions for URL/domain threat analysis.",
     "classification": {
       "intendedAudience": "Security Analysts, SOC Teams",
       "categories": ["Security, Fraud & Compliance", "IT Operations"],
@@ -25,12 +25,12 @@
     "license": {
       "name": "Proprietary",
       "text": null,
-      "uri": "https://protectornet.io/terms"
+      "uri": "https://sentrysurface.io/terms"
     },
     "privacyPolicy": {
       "name": "Privacy Policy",
       "text": null,
-      "uri": "https://protectornet.io/privacy"
+      "uri": "https://sentrysurface.io/privacy"
     },
     "releaseNotes": {
       "name": "Version 1.0.0",

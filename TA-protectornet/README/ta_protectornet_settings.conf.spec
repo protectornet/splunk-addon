@@ -4,6 +4,6 @@
 
 [general]
 base_url = <string>
-  * The base URL of the ProtectorNet API
+  * The base URL of the SentrySurface API
   * Must start with https://
-  * Default: https://api.protectornet.io
+  * Default: https://api.sentrysurface.io

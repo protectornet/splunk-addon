@@ -1,6 +1,6 @@
 <dashboard version="1.1" theme="dark">
-  <label>ProtectorNet Threat Intelligence</label>
-  <description>Submit URLs and domains for threat analysis using ProtectorNet WebScan and ThreatHunt services.</description>
+  <label>SentrySurface Threat Intelligence</label>
+  <description>Submit URLs and domains for threat analysis using SentrySurface WebScan and ThreatHunt services.</description>
 
   <!-- URL Input Panel -->
   <fieldset submitButton="true" autoRun="false">
@@ -43,7 +43,7 @@
   <!-- Row 2: Recent Scans from Event Index -->
   <row>
     <panel>
-      <title>Recent ProtectorNet Scans (Last 24h)</title>
+      <title>Recent SentrySurface Scans (Last 24h)</title>
       <chart>
         <search>
           <query>index=* sourcetype=* ptnet_final_verdict=*

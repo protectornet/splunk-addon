@@ -1,20 +1,20 @@
-# TA-protectornet — ProtectorNet Technology Add-on for Splunk
+# TA-protectornet — SentrySurface Technology Add-on for Splunk
 
 **Version:** 1.0.0  
-**Author:** ProtectorNet Pty Ltd  
+**Author:** SentrySurface  
 **Compatibility:** Splunk Enterprise 8.2+, Splunk Cloud  
 **Python:** 3.x (ships with Splunk 8.x+)
 
 ## Overview
 
-Enrich Splunk events with ProtectorNet threat intelligence. Submit URLs and domains for real-time threat analysis using ProtectorNet's WebScan and ThreatHunt services, and get back verdicts (Safe / Suspicious / Malicious), confidence scores, and threat categories — all without leaving Splunk.
+Enrich Splunk events with SentrySurface threat intelligence. Submit URLs and domains for real-time threat analysis using SentrySurface's WebScan and ThreatHunt services, and get back verdicts (Safe / Suspicious / Malicious), confidence scores, and threat categories — all without leaving Splunk.
 
 ## Features
 
 | Feature                  | Description                                                                 |
 |--------------------------|-----------------------------------------------------------------------------|
 | **Custom Search Commands** | `protectornetscan`, `protectornetstatus`, `protectornetverdict`            |
-| **Workflow Actions**       | Right-click any URL or domain in Splunk events → "Scan with ProtectorNet" |
+| **Workflow Actions**       | Right-click any URL or domain in Splunk events → "Scan with SentrySurface" |
 | **Adaptive Response**      | Auto-enrich notable events in Splunk Enterprise Security                  |
 | **Setup Dashboard**        | Securely configure your API key (encrypted in Splunk credential store)    |
 | **Overview Dashboard**     | Submit ad-hoc scans, view verdict distribution, and scan history          |
@@ -23,7 +23,7 @@ Enrich Splunk events with ProtectorNet threat intelligence. Submit URLs and doma
 
 ### From Splunkbase
 1. In Splunk Web, go to **Apps → Find More Apps**
-2. Search for "ProtectorNet"
+2. Search for "SentrySurface"
 3. Click **Install**
 4. Restart Splunk when prompted
 
@@ -35,9 +35,9 @@ Enrich Splunk events with ProtectorNet threat intelligence. Submit URLs and doma
 
 ## Setup
 
-1. Open Splunk Web → **ProtectorNet** app → **Setup**
-2. Enter your **ProtectorNet Base URL** (default: `https://api.protectornet.io`)
-3. Enter your **API Key** (from ProtectorNet → Profile → API Keys)
+1. Open Splunk Web → **SentrySurface** app → **Setup**
+2. Enter your **SentrySurface Base URL** (default: `https://api.sentrysurface.io`)
+3. Enter your **API Key** (from SentrySurface → Profile → API Keys)
 4. Click **Save Configuration**
 
 > **Security:** Your API key is stored encrypted in Splunk's `storage/passwords` and is never written to plain-text configuration files.
@@ -84,15 +84,15 @@ index=email sourcetype=exchange
 ### Workflow Actions
 
 Right-click any event containing a `url`, `dest_url`, `domain`, or `dest_host` field:
-- **Scan with ProtectorNet** — opens the ProtectorNet overview dashboard with the URL pre-filled
-- **Scan Domain with ProtectorNet** — same, but for domain fields
+- **Scan with SentrySurface** — opens the SentrySurface overview dashboard with the URL pre-filled
+- **Scan Domain with SentrySurface** — same, but for domain fields
 
 ### Adaptive Response (Enterprise Security)
 
 1. Go to **Enterprise Security → Configure → Content → Correlation Searches**
 2. Edit a correlation search
 3. Under **Adaptive Response Actions**, click **Add New Response Action**
-4. Select **ProtectorNet Threat Scan**
+4. Select **SentrySurface Threat Scan**
 5. Configure:
    - **URL Field**: the field containing the URL (default: `url`)
    - **Services**: `webscan,threathunt`
@@ -121,9 +121,9 @@ Right-click any event containing a `url`, `dest_url`, `domain`, or `dest_host` f
 
 | Issue                          | Solution                                                        |
 |--------------------------------|-----------------------------------------------------------------|
-| "API key not configured"       | Go to ProtectorNet → Setup and enter your API key               |
-| "Invalid API key (401)"        | Verify the key in ProtectorNet → Profile → API Keys             |
-| "Rate limit exceeded (429)"    | Wait 60 seconds, or upgrade your ProtectorNet plan              |
+| "API key not configured"       | Go to SentrySurface → Setup and enter your API key               |
+| "Invalid API key (401)"        | Verify the key in SentrySurface → Profile → API Keys             |
+| "Rate limit exceeded (429)"    | Wait 60 seconds, or upgrade your SentrySurface plan              |
 | "Scan timed out"               | The scan exceeded 10 minutes. Check submission status manually  |
 | Commands not found             | Restart Splunk after installation                               |
 
@@ -167,11 +167,11 @@ TA-protectornet/
 
 ## Support
 
-- **Documentation:** https://docs.protectornet.io/integrations/splunk
-- **Support Email:** support@protectornet.io
-- **GitHub:** https://github.com/ProtectorNet/splunk-addon
+- **Documentation:** https://docs.sentrysurface.io/integrations/splunk
+- **Support Email:** support@sentrysurface.io
+- **GitHub:** https://github.com/SentrySurface/splunk-addon
 
 ## License
 
-Copyright © 2026 ProtectorNet Pty Ltd. All rights reserved.
-See https://protectornet.io/terms for license terms.
+Copyright © 2026 SentrySurface. All rights reserved.
+See https://sentrysurface.io/terms for license terms.

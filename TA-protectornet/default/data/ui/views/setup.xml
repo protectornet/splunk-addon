@@ -1,6 +1,6 @@
 <dashboard version="1.1" script="setup.js" theme="dark">
-  <label>ProtectorNet Setup</label>
-  <description>Configure the ProtectorNet API connection. Your API key is stored encrypted in Splunk's credential store.</description>
+  <label>SentrySurface Setup</label>
+  <description>Configure the SentrySurface API connection. Your API key is stored encrypted in Splunk's credential store.</description>
 
   <row>
     <panel>
@@ -36,15 +36,15 @@
           </div>
 
           <div class="setup-field">
-            <label for="base_url">ProtectorNet Base URL</label>
-            <input type="text" id="base_url" placeholder="https://api.protectornet.io" />
-            <div class="help-text">The base URL of your ProtectorNet instance. Default: https://api.protectornet.io</div>
+            <label for="base_url">SentrySurface Base URL</label>
+            <input type="text" id="base_url" placeholder="https://api.sentrysurface.io" />
+            <div class="help-text">The base URL of your SentrySurface instance. Default: https://api.sentrysurface.io</div>
           </div>
 
           <div class="setup-field">
             <label for="api_key">API Key</label>
-            <input type="password" id="api_key" placeholder="Enter your ProtectorNet API key" autocomplete="off" />
-            <div class="help-text">Found in your ProtectorNet profile → API Keys. Required for WebScan and ThreatHunt services.</div>
+            <input type="password" id="api_key" placeholder="Enter your SentrySurface API key" autocomplete="off" />
+            <div class="help-text">Found in your SentrySurface profile → API Keys. Required for WebScan and ThreatHunt services.</div>
           </div>
 
           <button class="setup-btn" id="save_btn" onclick="saveConfig()">Save Configuration</button>

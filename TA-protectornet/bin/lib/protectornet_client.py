@@ -1,7 +1,7 @@
 """
-ProtectorNet API Client for Splunk
+SentrySurface API Client for Splunk
 
-Handles all communication with the ProtectorNet REST API using the
+Handles all communication with the SentrySurface REST API using the
 current asynchronous submit/poll/fetch workflow:
     - Submit URL for analysis  (POST /search/threatanalyse/)
     - Poll aggregated status   (GET  /search/threatanalyse/status/{submission_id})
@@ -44,7 +44,7 @@ except ImportError:
 # Constants
 # ---------------------------------------------------------------------------
 
-DEFAULT_BASE_URL = "https://api.protectornet.io"
+DEFAULT_BASE_URL = "https://api.sentrysurface.io"
 DEFAULT_TIMEOUT = 30  # seconds per HTTP request
 MAX_POLL_ATTEMPTS = 40  # 40 × 15s = 10 min max
 POLL_INTERVAL = 15  # seconds between status polls
